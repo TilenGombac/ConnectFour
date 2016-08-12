@@ -1,0 +1,6 @@
+﻿  mygraphicsscene.cpp
+mygraphicsscene.cpp(21): warning C4100: 'rect': unreferenced formal parameter
+LINK : warning LNK4044: unrecognized option '/lshell32'; ignored
+LINK : warning LNK4044: unrecognized option '/LD:/Programs/Qt/5.5/mingw492_32/lib'; ignored
+LINK : warning LNK4044: unrecognized option '/lQt5Cored'; ignored
+LINK : fatal error LNK1104: cannot open file 'D:\Programs\Qt\5.5\mingw492_32\lib\qtmaind.lib'
