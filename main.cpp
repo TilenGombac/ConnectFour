@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         }
     view.setCoins(coins);
     if(turn != playerTurn)
-        view.computerMakesMove(1200);
+		view.computerMakesMove(view.getRating());
 
     scene.setSceneRect(scene.itemsBoundingRect());
     //scene.addLine(0, 0, 560, 560, pen);

@@ -27,4 +27,4 @@ FORMS    +=
 RESOURCES += \
     coins.qrc
 
-CONFIG+= static
+CONFIG+= debug

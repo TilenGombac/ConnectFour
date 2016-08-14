@@ -20,10 +20,10 @@
 #define PC_VISUAL false // Vklop pokaze proces minimax algoritma, vendar traja veliko dlje
 
 struct Poteza {
-    Poteza() {}
-    Poteza(int _vrednost) : vrednost(_vrednost) {}
+	int vrednost, x;
+	Poteza() : vrednost(0), x(0) {}
+	Poteza(int _vrednost) : vrednost(_vrednost), x(0) {}
     Poteza(int _vrednost, int _x) : vrednost(_vrednost), x(_x) {}
-    int x, vrednost;
 };
 
 class MyGraphicsView : public QGraphicsView
@@ -46,6 +46,8 @@ public:
     void setItem(QGraphicsPixmapItem* _item);
     void setTurn(bool* _turn, bool * _playerTurn);
     void setPixmaps(QPixmap, QPixmap);
+
+	int getRating();
 
     void moveDown();
 

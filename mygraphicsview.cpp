@@ -72,6 +72,11 @@ void MyGraphicsView::setPixmaps(QPixmap first, QPixmap second)
     red = second;
 }
 
+int MyGraphicsView::getRating()
+{
+	return moj_rating;
+}
+
 void MyGraphicsView::moveDown()
 {
 	int x = item->pos().toPoint().x() / 80;
@@ -270,6 +275,7 @@ void MyGraphicsView::zakljucenaIgra(int zmagovalec)
         turnNumber = 0;
         myScene->removeItem(myLine);
         clearBoard();
+		delay(50);
 		*turn = *turn ^ 1;
 		if(*turn) item->setPixmap(red); // Ce je na potezi rdec nastavimo zgornji zeton na rdecega
 		else item->setPixmap(yellow); // Drugace pa na rumenega
@@ -309,8 +315,8 @@ void MyGraphicsView::computerMakesMove(int rating)
 			}
 		}
 	}
-	if(*turn) arrayOfCoins[move.x][droppedTo.y()]->setPixmap(red);
-	else arrayOfCoins[move.x][droppedTo.y()]->setPixmap(yellow);
+	//if(*turn) arrayOfCoins[move.x][droppedTo.y()]->setPixmap(red);
+	//else arrayOfCoins[move.x][droppedTo.y()]->setPixmap(yellow);
 
 	if(checkWin(*turn))
 		zakljucenaIgra(*turn);
@@ -349,7 +355,7 @@ int MyGraphicsView::evaluateBoardValue(bool side)
 {
     /*
      * Vrednosti
-     * 1 in a row / draw: [-1,1]
+	 * 1 in a row / draw: +1/-1
      * 2 in a row:        +2/-2
      * 3 in a row:        +3/-3
      * 4 in a row (win):  +4/-4
@@ -367,7 +373,7 @@ int MyGraphicsView::evaluateBoardValue(bool side)
 
     // Horizontal
     for(int y = 5; y >= 0; y--) {
-        counter == 0;
+		counter = 0;
         for(int x = 0; x <= 6; x++) {
             if(validCoin(x, y, side)) {
                 counter++;
@@ -428,31 +434,28 @@ int MyGraphicsView::evaluateBoardValue(bool side)
                     counter = 0;
             }
         }
-    return qrand() % 3 - 1;
+		return max_counter;
 }
 
-Poteza MyGraphicsView::minimaximum(bool miniOrMax, int depth) // Passes off weird x values
+Poteza MyGraphicsView::minimaximum(bool miniOrMax, int depth) // Improve
 {
-    if(depth == 0 || checkDraw()) {
+	if(depth <= 0 || checkDraw()) {
         int tmpValue = evaluateBoardValue(miniOrMax);
         if(miniOrMax == *playerTurn)
-			return Poteza(-tmpValue, 0); // Minimizing
+			return Poteza(-tmpValue); // Minimizing
         else
-			return Poteza(tmpValue, 0); // Maximizing
+			return Poteza(tmpValue); // Maximizing
     }
 	else if(checkWin(*playerTurn)) // Minimizing
-		return Poteza(-4, 0);
+		return Poteza(-4);
 	else if(checkWin(!(*playerTurn))) // Maximizing
-		return Poteza(4, 0);
+		return Poteza(4);
 
     Poteza bestMove;
-	bestMove.vrednost = 0;
-	bestMove.x = 0;
     QPoint droppedTo;
-	int x = 0;
     if(miniOrMax != *playerTurn) { // Maximizing
         bestMove.vrednost = -4; // Najslabsa mozna vrednost za maximizing
-		for(x = 0; x <= 6; x++) {
+		for(int x = 0; x <= 6; x++) {
             droppedTo = dropCoin(x, miniOrMax);
             if(droppedTo.y() != -1) { // Vrstica pri x se ni bila zapolnjena
 				if(PC_VISUAL == true) {
@@ -467,12 +470,17 @@ Poteza MyGraphicsView::minimaximum(bool miniOrMax, int depth) // Passes off weir
 				if(bestMove.vrednost < nova.vrednost) {
 					bestMove.vrednost = nova.vrednost;
 					bestMove.x = x;
+				} else if(bestMove.vrednost == nova.vrednost) {
+					if(qrand() % 2 == 1) { // "random" odlocanje
+						bestMove.vrednost = nova.vrednost;
+						bestMove.x = x;
+					}
 				}
             }
         }
     } else { // Minimizing
         bestMove.vrednost = 4; // Najslabsa mozna vrednost za minimizing
-		for(x = 0; x <= 6; x++) {
+		for(int x = 0; x <= 6; x++) {
             droppedTo = dropCoin(x, miniOrMax);
             if(droppedTo.y() != -1) { // Vrstica pri x se ni bila zapolnjena
 				if(PC_VISUAL == true) {
@@ -487,6 +495,11 @@ Poteza MyGraphicsView::minimaximum(bool miniOrMax, int depth) // Passes off weir
 				if(bestMove.vrednost > nova.vrednost) {
 					bestMove.vrednost = nova.vrednost;
 					bestMove.x = x;
+				} else if(bestMove.vrednost == nova.vrednost) {
+					if(qrand() % 2 == 1) { // "random" odlocanje
+						bestMove.vrednost = nova.vrednost;
+						bestMove.x = x;
+					}
 				}
 			}
         }

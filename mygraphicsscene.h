@@ -6,7 +6,6 @@
 
 class MyGraphicsScene : public QGraphicsScene
 {
-	QGraphicsScene *scene;
 public:
     MyGraphicsScene(QObject *parent = Q_NULLPTR);
     Coin *goAddPixmap(const QPixmap &pixmap);
