@@ -19,13 +19,13 @@ MyGraphicsView::MyGraphicsView(MyGraphicsScene *scene, QWidget *parent) :
     std::fstream file;
     file.open("rating.bin", std::ios::in | std::ios::binary);
     if(file.is_open()) {
-        file.read((char*)&moj_rating, sizeof(int));
+		file.read((char*)&my_rating, sizeof(int));
         file.close();
     } else {
-		moj_rating = 1200; // Base - Depth 4
+		my_rating = 1200; // Base rating - Minimax Depth 4
         file.open("rating.bin", std::ios::out | std::ios::binary);
         if(file.is_open()) {
-            file.write((char*)&moj_rating, sizeof(int));
+			file.write((char*)&my_rating, sizeof(int));
             file.close();
         }
     }
@@ -74,7 +74,7 @@ void MyGraphicsView::setPixmaps(QPixmap first, QPixmap second)
 
 int MyGraphicsView::getRating()
 {
-	return moj_rating;
+	return my_rating;
 }
 
 void MyGraphicsView::moveDown()
@@ -82,26 +82,26 @@ void MyGraphicsView::moveDown()
 	int x = item->pos().toPoint().x() / 80;
 	bool reachedTheTop = false;
 	for(int y = 5; y >= 0; y--) {
-		if(!arrayOfCoins[x][y]->isVisible()) { // Ob prvem praznem polju
-			arrayOfCoins[x][y]->setSide(*turn); // Nastavimo zeton na vrednost trenutnega igralca
-			if(*turn) arrayOfCoins[x][y]->setPixmap(red); // Ce je na vrsti igralec 1 (true) nastavimo rdec pixmap
-			else arrayOfCoins[x][y]->setPixmap(yellow); // Drugace pa rumenega
-			arrayOfCoins[x][y]->setVisible(true); // Polje nato pokazemo
-			break; // Zanko se prekinemo
+		if(!arrayOfCoins[x][y]->isVisible()) { // First empty field in the column
+			arrayOfCoins[x][y]->setSide(*turn); // Change the coin value to the current player's
+			if(*turn) arrayOfCoins[x][y]->setPixmap(red); // Setting the coin color based on player value (1 or 0)
+			else arrayOfCoins[x][y]->setPixmap(yellow);
+			arrayOfCoins[x][y]->setVisible(true); // Setting the hidden field to visible
+			break;
 		}
-		if(y == 0) reachedTheTop = true; // Ce je stolpec ze v celoti zapolnjen nastavimo sastavico na 1 da poteze ne zamenjamo
+		if(y == 0) reachedTheTop = true; // If the column has already been filled, we don't want to swap player turns
 	}
-	if(!reachedTheTop) { // Ce je stolpec zapolnjen (od prej) ne preverjamo za zmago in ne menjamo poteze
-		turnNumber++; // Za preverjanje izenacene igre
+	if(!reachedTheTop) { // Full column -> don't check win, don't swap turns
+		turnNumber++; // Checking for draw -> max turns and no victory => draw
 		if(checkWin(*turn))
 			zakljucenaIgra(*turn);
 		else if(checkDraw())
 			zakljucenaIgra(-1);
 		else {
-			// Ce se igra ni koncala zamenjamo igralca na potezi in nadaljujemo z igro
+			// If the game didn't end, swap player turns and continue
 			*turn = *turn ^ 1;
-			if(*turn) item->setPixmap(red); // Ce je na potezi rdec nastavimo zgornji zeton na rdecega
-			else item->setPixmap(yellow); // Drugace pa na rumenega
+			if(*turn) item->setPixmap(red); // Setting the coin color based on player value (1 or 0)
+			else item->setPixmap(yellow);
 		}
 	}
 	delay(50);
@@ -162,9 +162,9 @@ bool MyGraphicsView::checkWin(bool side)
                 counter = 0;
         }
     }
-    // Diagonali
+	// Diagonal
 
-    // Desno zgoraj -> Levo spodaj
+	// Up right to down left
     for(int y = 0; y <= 2; y++)
         for(int x = 3; x <= 6; x++) {
             counter = 0;
@@ -185,7 +185,7 @@ bool MyGraphicsView::checkWin(bool side)
             }
         }
 
-    // Levo zgoraj -> Desno spodaj
+	// Up left to down right
     for(int y = 0; y <= 2; y++)
         for(int x = 0; x <= 3; x++) {
             counter = 0;
@@ -234,60 +234,60 @@ void MyGraphicsView::zakljucenaIgra(int zmagovalec)
 
 
     QMessageBox box;
-	QString rating_string = "RATING:\nVaš novi rating: ";
+	QString rating_string = "RATING:\nYour new rating: ";
     if(zmagovalec != *playerTurn) {
-		moj_rating -= 200;
-		box.setWindowTitle("Zmagal je računalnik!");
-		box.setText(rating_string + QString::number(moj_rating) + " (-200)\nRačunalnik je bil tokrat boljši. Želite poskusiti znova?");
+		my_rating -= 200;
+		box.setWindowTitle("The computer was victorious!");
+		box.setText(rating_string + QString::number(my_rating) + " (-200)\nThe computer was better this time. Wish to try again?");
     } else if(zmagovalec == *playerTurn) {
-		moj_rating += 200;
-        box.setWindowTitle("Zmagali ste");
-		box.setText(rating_string + QString::number(moj_rating) + " (+200)\nTokrat vam je uspelo premagati računalnik. Želite poskusiti znova?");
+		my_rating += 200;
+		box.setWindowTitle("You win");
+		box.setText(rating_string + QString::number(my_rating) + " (+200)\nYou managed to beat the computer this time. Wish to try again?");
     } else {
 		QString change;
-		if(moj_rating > (moj_rating / 300) * 300) {
-			moj_rating -= 100;
+		if(my_rating > (my_rating / 300) * 300) {
+			my_rating -= 100;
 			change = " (-100)\n";
 		}
 		else {
-			moj_rating += 100;
+			my_rating += 100;
 			change = " (+100)\n";
 		}
-        box.setWindowTitle("Igra je bila izenačena");
-		box.setText(rating_string + QString::number(moj_rating) + change + "Računalnik in vi ste bili na enakem nivoju. Želite poskusiti znova?");
+		box.setWindowTitle("Draw!");
+		box.setText(rating_string + QString::number(my_rating) + change + "The game resulted in a draw. Wish to try again?");
     }
     std::fstream file;
     file.open("rating.bin", std::ios::out | std::ios::binary);
     if(file.is_open()) {
-		file.write((char*)&moj_rating, sizeof(int));
+		file.write((char*)&my_rating, sizeof(int));
         file.close();
     } else {
 		QMessageBox boks;
-		boks.setText("Prislo je do napake pri odpiranju rating datotetek. Aplikacija se bo zaradi kriticne napake zaprla.");
+		boks.setText("an error has occurred during a file opnening process. Due to this critical error the application will now quit.");
 		if(boks.exec() == QMessageBox::Ok)
 			QCoreApplication::exit();
     }
-    QAbstractButton* pPoskusiZnova = box.addButton("Poskusi znova", QMessageBox::YesRole);
-    box.addButton("Ne želim več igrati", QMessageBox::NoRole);
+	QAbstractButton* pTryAgain = box.addButton("Try again", QMessageBox::YesRole);
+	box.addButton("I don't wish to play again", QMessageBox::NoRole);
     box.exec();
-    if(box.clickedButton() == pPoskusiZnova) { // Weird behavior?
+	if(box.clickedButton() == pTryAgain) { // Weird behavior?
 		item->setPos(240, 0);
         turnNumber = 0;
         myScene->removeItem(myLine);
         clearBoard();
 		delay(50);
 		*turn = *turn ^ 1;
-		if(*turn) item->setPixmap(red); // Ce je na potezi rdec nastavimo zgornji zeton na rdecega
-		else item->setPixmap(yellow); // Drugace pa na rumenega
+		if(*turn) item->setPixmap(red); // Setting the coin color based on player value (1 or 0)
+		else item->setPixmap(yellow);
 		QMessageBox boxy;
 		if(*turn != *playerTurn) {
-			computerMakesMove(moj_rating);
-			boxy.setText("Računalnik ima prvo potezo");
+			computerMakesMove(my_rating);
+			boxy.setText("The computer goes first");
 			boxy.exec();
 			delay(50);
 		} else {
 			*turn = *turn ^ 1;
-			boxy.setText("Vi imate prvo potezo");
+			boxy.setText("You go first");
 			boxy.exec();
 		}
 
@@ -299,10 +299,9 @@ void MyGraphicsView::zakljucenaIgra(int zmagovalec)
 
 void MyGraphicsView::computerMakesMove(int rating)
 {
-	turnNumber++; // za preverjanje izenacene igre
-	Poteza move;
+	turnNumber++; // Checking draw
+	Move move;
 	QPoint droppedTo;
-	//poteze.clear();
 	move = minimaximum(*turn, (rating / 300));
 	droppedTo = dropCoin(move.x, *turn);
 	if(droppedTo.y() == -1) {
@@ -323,8 +322,8 @@ void MyGraphicsView::computerMakesMove(int rating)
 	else if(checkDraw())
 		zakljucenaIgra(-1);
 	*turn = *turn ^ 1;
-	if(*turn) item->setPixmap(red); // Ce je na potezi rdec nastavimo zgornji zeton na rdecega
-	else item->setPixmap(yellow); // Drugace pa na rumenega
+	if(*turn) item->setPixmap(red); // Setting the coin color based on player value (1 or 0)
+	else item->setPixmap(yellow);
 	delay(50);
 }
 
@@ -337,8 +336,8 @@ QPoint MyGraphicsView::dropCoin(int x, bool side)
 				if(!arrayOfCoins[x][y]->isVisible()) {
 					arrayOfCoins[x][y]->setVisible(true);
 					arrayOfCoins[x][y]->setSide(side);
-					if(side) arrayOfCoins[x][y]->setPixmap(red); // Ce je na potezi rdec nastavimo zgornji zeton na rdecega
-					else arrayOfCoins[x][y]->setPixmap(yellow); // Drugace pa na rumenega
+					if(side) arrayOfCoins[x][y]->setPixmap(red); // Setting the coin color based on player value (1 or 0)
+					else arrayOfCoins[x][y]->setPixmap(yellow);
 					return QPoint(x, y);
 				}
 			}
@@ -354,7 +353,7 @@ void MyGraphicsView::hideCoin(int x, int y)
 int MyGraphicsView::evaluateBoardValue(bool side)
 {
     /*
-     * Vrednosti
+	 * Values
 	 * 1 in a row / draw: +1/-1
      * 2 in a row:        +2/-2
      * 3 in a row:        +3/-3
@@ -362,7 +361,7 @@ int MyGraphicsView::evaluateBoardValue(bool side)
      */
     int counter = 0, max_counter = 0;
 
-    // Ni vec prazni polj - DRAW
+	// No empty fields - DRAW
     for(int x = 0; x <= 6; x++)
         for(int y = 5; y >= 0; y--)
             if(arrayOfCoins[x][y]->isVisible())
@@ -401,9 +400,9 @@ int MyGraphicsView::evaluateBoardValue(bool side)
         }
     }
 
-    // Diagonali
+	// Diagonal
 
-    // Desno zgoraj -> Levo spodaj
+	// Up right to down left
     for(int y = 0; y <= 2; y++)
         for(int x = 3; x <= 6; x++) {
             counter = 0;
@@ -419,7 +418,7 @@ int MyGraphicsView::evaluateBoardValue(bool side)
             }
         }
 
-    // Levo zgoraj -> Desno spodaj
+	// Up left to down right
     for(int y = 0; y <= 2; y++)
         for(int x = 0; x <= 3; x++) {
             counter = 0;
@@ -437,67 +436,67 @@ int MyGraphicsView::evaluateBoardValue(bool side)
 		return max_counter;
 }
 
-Poteza MyGraphicsView::minimaximum(bool miniOrMax, int depth) // Improve
+Move MyGraphicsView::minimaximum(bool miniOrMax, int depth)
 {
 	if(depth <= 0 || checkDraw()) {
         int tmpValue = evaluateBoardValue(miniOrMax);
         if(miniOrMax == *playerTurn)
-			return Poteza(-tmpValue); // Minimizing
+			return Move(-tmpValue); // Minimizing
         else
-			return Poteza(tmpValue); // Maximizing
+			return Move(tmpValue); // Maximizing
     }
 	else if(checkWin(*playerTurn)) // Minimizing
-		return Poteza(-4);
+		return Move(-4);
 	else if(checkWin(!(*playerTurn))) // Maximizing
-		return Poteza(4);
+		return Move(4);
 
-    Poteza bestMove;
+	Move bestMove;
     QPoint droppedTo;
     if(miniOrMax != *playerTurn) { // Maximizing
-        bestMove.vrednost = -4; // Najslabsa mozna vrednost za maximizing
+		bestMove.value = -4; // Worst option for the maximizing
 		for(int x = 0; x <= 6; x++) {
             droppedTo = dropCoin(x, miniOrMax);
-            if(droppedTo.y() != -1) { // Vrstica pri x se ni bila zapolnjena
+			if(droppedTo.y() != -1) { // Column at the current x has not yet been filled
 				if(PC_VISUAL == true) {
 					if(item->pos().x() != (x * 80)) {
 						item->setPos(x * 80, 0);
-						delay(1); // za prikaz premika
+						delay(1); // Displaying the minimax visual
 					}
 				}
-				Poteza nova;
-				nova.vrednost = minimaximum(!miniOrMax, (depth - 1)).vrednost;
+				Move MoveNew;
+				MoveNew.value = minimaximum(!miniOrMax, (depth - 1)).value;
 				hideCoin(x, droppedTo.y());
-				if(bestMove.vrednost < nova.vrednost) {
-					bestMove.vrednost = nova.vrednost;
+				if(bestMove.value < MoveNew.value) {
+					bestMove.value = MoveNew.value;
 					bestMove.x = x;
-				} else if(bestMove.vrednost == nova.vrednost) {
-					if(qrand() % 2 == 1) { // "random" odlocanje
-						bestMove.vrednost = nova.vrednost;
+				} else if(bestMove.value == MoveNew.value) {
+					if(qrand() % 2 == 1) { // "random" decision making
+						bestMove.value = MoveNew.value;
 						bestMove.x = x;
 					}
 				}
             }
         }
     } else { // Minimizing
-        bestMove.vrednost = 4; // Najslabsa mozna vrednost za minimizing
+		bestMove.value = 4; // Worst option for the minimizing
 		for(int x = 0; x <= 6; x++) {
             droppedTo = dropCoin(x, miniOrMax);
-            if(droppedTo.y() != -1) { // Vrstica pri x se ni bila zapolnjena
+			if(droppedTo.y() != -1) { // Column at the current x has not yet been filled
 				if(PC_VISUAL == true) {
 					if(item->pos().x() != (x * 80)) {
 						item->setPos(x * 80, 0);
-						delay(1); // za prikaz premika
+						delay(1); // Displaying the minimax visual
 					}
 				}
-				Poteza nova;
-				nova.vrednost = minimaximum(!miniOrMax, (depth - 1)).vrednost;
+				Move MoveNew;
+				MoveNew.value = minimaximum(!miniOrMax, (depth - 1)).value;
 				hideCoin(x, droppedTo.y());
-				if(bestMove.vrednost > nova.vrednost) {
-					bestMove.vrednost = nova.vrednost;
+				if(bestMove.value > MoveNew.value) {
+					bestMove.value = MoveNew.value;
 					bestMove.x = x;
-				} else if(bestMove.vrednost == nova.vrednost) {
-					if(qrand() % 2 == 1) { // "random" odlocanje
-						bestMove.vrednost = nova.vrednost;
+				} else if(bestMove.value == MoveNew.value) {
+					if(qrand() % 2 == 1) { // "random" decision making
+						bestMove.value = MoveNew.value;
 						bestMove.x = x;
 					}
 				}
@@ -515,8 +514,8 @@ void MyGraphicsView::keyPressEvent(QKeyEvent *event)
         onRightPress();
     else if(event->key() == Qt::Key_Space || event->key() == Qt::Key_Down) {
 		if(*turn == *playerTurn)
-			moveDown(); // Igralec postavi zeton
-		if(*turn != *playerTurn) // Racunalnik postavi zeton
-			computerMakesMove(moj_rating);
+			moveDown(); // Player drops coin
+		if(*turn != *playerTurn) // Computer drops coin
+			computerMakesMove(my_rating);
     }
 }

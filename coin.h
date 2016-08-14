@@ -4,7 +4,7 @@
 
 
 class Coin : public QGraphicsPixmapItem {
-    bool side; // 0 - rumen, 1 - rdec
+	bool side; // 0 - yellow, 1 - red
 public:
     Coin(QGraphicsItem* parent = 0);
     void setSide(bool);

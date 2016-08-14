@@ -17,13 +17,13 @@
 #include <fstream>
 #include <math.h>
 
-#define PC_VISUAL false // Vklop pokaze proces minimax algoritma, vendar traja veliko dlje
+#define PC_VISUAL false // Setting this to 'True' will display the 'thinking' done by Minimax
 
-struct Poteza {
-	int vrednost, x;
-	Poteza() : vrednost(0), x(0) {}
-	Poteza(int _vrednost) : vrednost(_vrednost), x(0) {}
-    Poteza(int _vrednost, int _x) : vrednost(_vrednost), x(_x) {}
+struct Move {
+	int value, x;
+	Move() : value(0), x(0) {}
+	Move(int _value) : value(_value), x(0) {}
+	Move(int _value, int _x) : value(_value), x(_x) {}
 };
 
 class MyGraphicsView : public QGraphicsView
@@ -34,8 +34,8 @@ class MyGraphicsView : public QGraphicsView
     MyGraphicsScene *myScene;
     short turnNumber;
     bool *turn, *playerTurn;
-    QPoint point_1, point_2; // Za izris zmage
-    int moj_rating;
+	QPoint point_1, point_2; // For drawing the winning line
+	int my_rating;
 
 public:
     MyGraphicsView(MyGraphicsScene *scene, QWidget *parent = Q_NULLPTR);
@@ -66,7 +66,7 @@ public:
 
     int evaluateBoardValue(bool);
 
-    Poteza minimaximum(bool, int);
+	Move minimaximum(bool, int);
 
 private slots:
     void keyPressEvent(QKeyEvent *event);

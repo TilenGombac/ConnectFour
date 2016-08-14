@@ -15,12 +15,12 @@ int main(int argc, char *argv[])
 {
     qsrand(time(NULL));
     QApplication a(argc, argv);
-    QCoreApplication::setApplicationName("Štiri v vrsto - Tilen Gombač");
+	QCoreApplication::setApplicationName("Connect Four - Crafy Scoundrel");
     QPixmap redCoin(":/coin/img/red_coin.png");
     QPixmap yellowCoin(":/coin/img/yellow_coin.png");
     MyGraphicsScene scene;
     MyGraphicsView view(&scene);
-    Coin *coinItem, *coins[7][6]; // 7x6 polja
+	Coin *coinItem, *coins[7][6]; // 7x6 fields
     bool turn = qrand() % 2, playerTurn = qrand() % 2;
     QPen pen;
     QColor color(0, 170, 238);
@@ -39,18 +39,18 @@ int main(int argc, char *argv[])
 
     scene.addLine(0, 78, 560, 78, pen);
 
-    // Narisemo crte, ki "omejujejo" zetone
-    // Vertikalne
+	// Drawing the field lines
+	// Vertical
     for(int i = 0; i <= 5; i++)
         scene.addLine(78 + i * 80, 80, 78 + i * 80, 560, pen);
 
-    // Horizontalne
+	// Horizontal
     for(int i = 0; i <= 4; i++)
         scene.addLine(0, 158 + i * 80, 560, 158 + i * 80, pen);
 
 
 
-    // Generiramo (skrite) rumene zetone
+	// Filling the field with hidden (yellow) coins which we'll display when a player makes a move
     for(int y = 0; y < 6; y++)
         for(int x = 0; x < 7; x++) {
             coins[x][y] = scene.goAddPixmap(yellowCoin);
