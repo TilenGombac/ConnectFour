@@ -1,2 +1,2 @@
-# ConnectFour
-A simple C++ ConnectFour game built in Qt 5.5.1
+# Connect Four
+A simple C++ Connect Four game in C++ using Qt
