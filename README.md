@@ -1,2 +1,2 @@
 # Connect Four
-A simple C++ Connect Four game in C++ using Qt
+A simple Connect Four game in C++ using Qt
